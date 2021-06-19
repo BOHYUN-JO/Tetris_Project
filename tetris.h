@@ -17,10 +17,13 @@
 #define NUM_OF_ROTATE	4
 #define BLOCK_HEIGHT	4
 #define BLOCK_WIDTH	4
-#define BLOCK_NUM	3
+#define VISIBLE_BLOCK 3
 
+#define BLOCK_NUM ( (VISIBLE_BLOCK == 1) ? 3 : VISIBLE_BLOCK +1 )
 // menu number
 #define MENU_PLAY '1'
+#define MENU_RANK '2'
+#define MENU_REC_PLAY '3'
 #define MENU_EXIT '4'
 
 // 사용자 이름의 길이
@@ -30,10 +33,16 @@
 
 typedef struct _RecNode{
 	int lv,score;
-	char (*f)[WIDTH];
+	char f[HEIGHT][WIDTH];
 	struct _RecNode *c[CHILDREN_MAX];
+	int curBlockID;
+	int recBlockX, recBlockY, recBlockRotate;
 } RecNode;
-
+typedef struct _Node{
+	int score;
+	char name[NAMELEN];
+	struct _Node* next;
+}Node;
 /* [blockShapeID][# of rotate][][]*/
 const char block[NUM_OF_SHAPE][NUM_OF_ROTATE][BLOCK_HEIGHT][BLOCK_WIDTH] ={
 	{/*[0][][][]					▩▩▩▩*/
@@ -144,7 +153,10 @@ int gameOver=0;			/* 게임이 종료되면 1로 setting된다.*/
 int timed_out;
 int recommendR,recommendY,recommendX; // 추천 블럭 배치 정보. 차례대로 회전, Y 좌표, X 좌표
 RecNode *recRoot;
-
+int N;
+Node* head = NULL;
+Node* tail = NULL;
+int RecRotate[7] = {2,4,4,4,1,2,2}; 
 /***********************************************************
  *	테트리스의 모든  global 변수를 초기화 해준다.
  *	input	: none
@@ -234,7 +246,7 @@ void DrawField();
  *		  (int) 블럭의 X좌표
  *	return	: none
  ***********************************************************/
-void AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int blockY, int blockX);
+int AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int blockY, int blockX);
 
 /***********************************************************
  *	완전히 채워진 Line을 삭제하고 점수를 매겨준다.
@@ -345,14 +357,15 @@ void newRank(int score);
  *	input	: (RecNode*) 추천 트리의 루트
  *	return	: (int) 추천 블럭 배치를 따를 때 얻어지는 예상 스코어
  ***********************************************************/
-int recommend(RecNode *root);
+int modified_recommend(RecNode *root);
 
 /***********************************************************
  *	추천 기능에 따라 블럭을 배치하여 진행하는 게임을 시작한다.
  *	input	: none
  *	return	: none
  ***********************************************************/
-void recommendedPlay();
-
-
+void recommendPlay();
+void DrawRecommend(int y, int x, int blockID, int blockRotate);
+void makeTree(RecNode*root);
+void recBlockDown(int sig);
 #endif
